@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+data/
+deploy/
+__pycache__/
+.pytest_cache/
+.venv/
+*.zip
+*.log
