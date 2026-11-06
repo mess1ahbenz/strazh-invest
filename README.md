@@ -23,7 +23,11 @@
 ### Сайт в интернете
 
 Публичный режим (`STRAZH_MODE=public`): каждый посетитель получает свою изолированную комнату в памяти, владелец входит
-паролем и видит основную комнату с Telegram. Развёртывание на Render описано в [docs/DEPLOY.md](docs/DEPLOY.md).
+паролем и видит основную комнату с Telegram.
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/mess1ahbenz/strazh-invest)
+
+Что заполнить при развёртывании и как устроен бесплатный тариф: [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ### Docker Compose на своём компьютере
 

@@ -163,6 +163,8 @@ def test_security_headers(public):
 def test_foreign_host_and_origin_refused(public):
     with client(public) as c:
         assert c.get("/", headers={"host": "evil.example"}).status_code == 403
+        assert c.get("/api/state", headers={"host": "evil.example"}).status_code == 403
+        assert c.get("/healthz", headers={"host": "10.0.0.7:10000"}).json() == {"ok": True}, "проверка хостинга идёт на внутренний адрес"
         visit(c)
         assert c.post("/api/market/halt", json={}, headers={"origin": "https://evil.example"}).status_code == 403
 

@@ -5,7 +5,21 @@
 
 ## Render, бесплатный тариф
 
-Нужны публичный репозиторий на GitHub и ключ API Render (dashboard.render.com → Account Settings → API Keys).
+### Кнопкой, без передачи ключей
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/mess1ahbenz/strazh-invest)
+
+1. Нажмите кнопку и войдите в Render (можно через GitHub).
+2. Render прочитает `render.yaml` и попросит заполнить секреты:
+   - `STRAZH_OWNER_PASSWORD` — свой пароль владельца, не короче 12 символов;
+   - `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `TELEGRAM_ALLOWED_USERS` — как в локальном `.env`, или оставьте пустыми;
+   - `ANTHROPIC_API_KEY` — по желанию.
+   `STRAZH_SECRET_KEY` и `TELEGRAM_WEBHOOK_SECRET` Render сгенерирует сам.
+3. Нажмите Apply. Сборка идёт 3–5 минут, адрес вида `https://strazh-invest.onrender.com` появится в панели сервиса.
+
+### Скриптом
+
+Нужен ключ API Render (dashboard.render.com → Account Settings → API Keys).
 
 ```bash
 RENDER_API_KEY=... .venv/bin/python scripts/deploy_render.py https://github.com/<user>/<repo>
@@ -41,9 +55,10 @@ RENDER_API_KEY=... .venv/bin/python scripts/deploy_render.py https://github.com/
 
 ## Telegram: только один экземпляр
 
-Один токен бота нельзя одновременно опрашивать с двух машин. Когда бот работает на сайте через вебхук, локальный
-контейнер с тем же токеном перехватит сообщения или получит ошибку 409 от Telegram. Локально оставьте
-`TELEGRAM_BOT_TOKEN` пустым или заведите второго бота.
+Один токен бота нельзя одновременно опрашивать с двух машин. Когда сайт поставил вебхук, локальный контейнер с тем же
+токеном получает от Telegram отказ 409 на опрос и показывает «Telegram: нет связи»; сайт при этом работает. Вебхук
+локальный контейнер не снимает. Чтобы вернуть бота на свой компьютер, остановите сайт и снимите вебхук:
+`curl "https://api.telegram.org/bot<токен>/deleteWebhook"`. Проще завести второго бота для локального стенда.
 
 ## Защита публичного режима
 

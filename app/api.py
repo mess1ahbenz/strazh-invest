@@ -363,7 +363,8 @@ def create_app(settings: Settings | None = None, platform: Platform | None = Non
     async def guard(request: Request, call_next):
         """Чужой сайт и чужой адрес не дотянутся до панели; тело запроса ограничено; ответы с заголовками защиты."""
         host = request.headers.get("host", "").lower().rsplit(":", 1)[0]
-        if host not in allowed_hosts:
+        # проверка хостинга приходит на внутренний адрес; /healthz ничего не раскрывает и ничего не меняет
+        if host not in allowed_hosts and request.url.path != "/healthz":
             return JSONResponse({"detail": "Адрес не разрешён"}, status_code=403)
         origin = request.headers.get("origin")
         if request.method != "GET" and origin and origin.split("://", 1)[-1].rsplit(":", 1)[0].lower() not in allowed_hosts:
