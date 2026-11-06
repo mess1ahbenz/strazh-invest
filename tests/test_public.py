@@ -1,6 +1,7 @@
 """Публичный сайт: изоляция посетителей, вход владельца, лимиты, заголовки, вебхук. Атаки из docs/review/adversarial.md."""
 from __future__ import annotations
 
+import re
 from dataclasses import replace
 
 import pytest
@@ -183,8 +184,10 @@ def test_webhook_requires_secret(public):
         assert c.post("/telegram/hook", json={"update_id": 1}).status_code == 403
         assert c.post("/telegram/hook", json={"update_id": 1}, headers={"x-telegram-bot-api-secret-token": "wrong"}).status_code == 403
         assert c.post("/telegram/hook", json={"update_id": 1}, headers=[(b"x-telegram-bot-api-secret-token", "секрет".encode())]).status_code == 403
-        assert c.post("/telegram/hook", json={"update_id": 2}, headers={"x-telegram-bot-api-secret-token": "s" * 30}).status_code == 200
+        assert c.post("/telegram/hook", json={"update_id": 2}, headers={"x-telegram-bot-api-secret-token": conf.telegram_hook_token}).status_code == 200
+        assert c.post("/telegram/hook", json={"update_id": 3}, headers={"x-telegram-bot-api-secret-token": "s" * 30}).status_code == 403
     assert calls == [{"update_id": 2}]
+    assert re.fullmatch(r"[A-Za-z0-9_-]{1,256}", replace(conf, telegram_webhook_secret="a+b/c=" * 8).telegram_hook_token)
 
 
 def test_owner_room_is_the_only_one_with_telegram(public):

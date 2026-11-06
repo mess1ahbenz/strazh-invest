@@ -306,7 +306,7 @@ def create_app(settings: Settings | None = None, platform: Platform | None = Non
                 tasks.append(asyncio.create_task(owner.telegram.send_forever()))
                 if webhook:
                     try:
-                        await owner.telegram.set_webhook(f"{settings.base_url}/telegram/hook", settings.telegram_webhook_secret)
+                        await owner.telegram.set_webhook(f"{settings.base_url}/telegram/hook", settings.telegram_hook_token)
                     except Exception as exc:  # noqa: BLE001
                         owner.telegram.last_error = f"вебхук не установлен: {type(exc).__name__}"
                         log.warning("Вебхук Telegram не установлен: %s", type(exc).__name__)
@@ -528,7 +528,7 @@ def create_app(settings: Settings | None = None, platform: Platform | None = Non
     async def telegram_hook(request: Request) -> dict[str, Any]:
         """Telegram будит спящий бесплатный сервер этим запросом. Без секрета запрос не принимается."""
         given = request.headers.get("x-telegram-bot-api-secret-token", "").encode("utf-8", "replace")
-        if not webhook or not hmac.compare_digest(given, settings.telegram_webhook_secret.encode()):
+        if not webhook or not hmac.compare_digest(given, settings.telegram_hook_token.encode()):
             raise HTTPException(403, "Нет доступа")
         try:
             update = await request.json()
