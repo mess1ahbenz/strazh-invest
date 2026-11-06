@@ -1,0 +1,23 @@
+name: strazh-invest
+
+services:
+  strazh:
+    build: .
+    ports:
+      - "127.0.0.1:${STRAZH_PORT:-8000}:8000"   # только локальный адрес: панель управляет ботом
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      STRAZH_HOST: 0.0.0.0
+      STRAZH_PORT: "8000"
+      STRAZH_LOCAL_CONTAINER: "1"                # слушает 0.0.0.0 внутри, наружу только 127.0.0.1 выше
+      STRAZH_DB: /data/strazh.db
+    volumes:
+      - ./data:/data                             # база и журнал рядом с проектом, переживают пересборку
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen(u.Request('http://127.0.0.1:8000/healthz', headers={'Host': 'localhost'}), timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped

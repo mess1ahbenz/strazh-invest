@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Страж инвестиций</title>
+<meta name="description" content="Учебный симулятор: правило словами, торговый бот на искусственном рынке и честное сравнение с удержанием.">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-pane="market">
+<a class="skip" href="#scene">К графику</a>
+<header class="top" id="top">
+  <div class="brand"><span class="mark" aria-hidden="true">С</span>Страж инвестиций</div>
+  <div class="badge" title="Все цены, заявки и сделки придуманы. Настоящие заявки не отправляются.">Учебный симулятор · искусственные данные</div>
+  <div class="top-right">
+    <div class="session" id="session" hidden></div>
+    <details class="info" id="info">
+      <summary aria-label="Сведения о стенде"><span aria-hidden="true">i</span></summary>
+      <div class="info-pop" id="info-pop"></div>
+    </details>
+  </div>
+</header>
+
+<nav class="panes" aria-label="Разделы">
+  <button type="button" data-pane-btn="market" aria-pressed="true">Рынок</button>
+  <button type="button" data-pane-btn="chat" aria-pressed="false">Чат <span class="unread" id="unread" hidden></span></button>
+  <button type="button" data-pane-btn="log" aria-pressed="false">Журнал</button>
+</nav>
+
+
+
+<main class="layout">
+  <div class="main-col">
+    <section class="hero" data-pane="market" aria-labelledby="hero-title">
+    <div class="hero-text">
+      <h1 id="hero-title">Правило словами — бот исполняет — честный итог</h1>
+      <p>Страж следит за вашей позицией по правилу, которое вы написали в чате, и продаёт по настоящему стакану заявок, а не по картинке графика. Итог всегда сравнивается с удержанием: что было бы, если ничего не делать.</p>
+    </div>
+    <ol class="steps" id="steps">
+      <li class="step" data-step="1">
+        <span class="step-n" aria-hidden="true">1</span>
+        <div class="step-body"><b>Задайте правило</b><span class="step-note" id="step1-note">Пример уйдёт в чат, вы подтвердите</span>
+          <button type="button" class="primary" data-hero="rule">Пример в чат</button></div>
+      </li>
+      <li class="step" data-step="2">
+        <span class="step-n" aria-hidden="true">2</span>
+        <div class="step-body"><b>Обрушьте рынок</b><span class="step-note" id="step2-note">Сценарий Б: −50% за секунду, x10</span>
+          <button type="button" class="primary" data-hero="crash">Обвалить</button></div>
+      </li>
+      <li class="step" data-step="3">
+        <span class="step-n" aria-hidden="true">3</span>
+        <div class="step-body"><b>Посмотрите, что продалось</b><span class="step-note" id="step3-note">Итог против удержания</span>
+          <button type="button" class="primary" data-hero="result">К итогу</button></div>
+      </li>
+    </ol>
+  </section>
+    <article class="card scene" id="scene" data-pane="market" tabindex="-1">
+      <div class="scene-bar">
+        <label class="sel"><span class="vh">Сценарий</span>
+          <select id="scenario" aria-label="Сценарий"></select></label>
+        <button type="button" class="primary" data-sim="start">▶ Запустить</button>
+        <button type="button" id="pause-btn" data-sim="pause">Пауза времени</button>
+        <button type="button" data-sim="reset">Сброс</button>
+      </div>
+      <p class="scenario-desc" id="scenario-desc"></p>
+      <div class="crash-bar">
+        <span class="crash-label">Обвалить рынок сейчас:</span>
+        <button type="button" class="danger" data-crash="20">−20%</button>
+        <button type="button" class="danger" data-crash="50">−50%</button>
+        <button type="button" class="danger" data-crash="80">−80%</button>
+        <label class="speed"><span class="speed-word">Скорость времени</span> <output id="speed-v">x1</output>
+          <input id="speed" type="range" min="1" max="20" step="1" value="1" aria-label="Скорость учебного времени"></label>
+      </div>
+
+      <div class="halt-banner" id="halt-banner" role="alert" hidden>
+        <b>Торги остановлены.</b> <span>Заявки не исполняются, бот ждёт возобновления.</span>
+        <button type="button" data-market="resume">Возобновить торги</button>
+      </div>
+
+      <div class="chart-head">
+        <div class="quote">
+          <h2 id="instrument">Пример-Тех</h2>
+          <div class="price-now"><span class="big" id="last">—</span> <span class="chg" id="last-chg"></span></div>
+        </div>
+        <div class="status-col">
+          <div class="rule-status" id="rule-status" aria-live="polite"></div>
+          <div class="run-line" id="run-line"></div>
+        </div>
+      </div>
+      <div class="chart-wrap" id="chart-wrap">
+        <svg id="chart" role="img" aria-label="График цены" tabindex="0" focusable="true"></svg>
+        <div class="tip" id="tip" role="status" hidden></div>
+      </div>
+      <div class="legend" aria-hidden="true">
+        <span><i class="ln last"></i>Цена последней сделки</span>
+        <span><i class="ln bid"></i>Лучший покупатель</span>
+        <span><i class="ln thr"></i>Порог правила</span>
+        <span><i class="ln floor"></i>Не дешевле</span>
+        <span><i class="mk trigger"></i>Сработало</span>
+        <span><i class="mk order"></i>Заявка</span>
+        <span><i class="mk fill"></i>Сделка</span>
+        <span><i class="mk blocked"></i>Нет покупателей</span>
+      </div>
+      <button type="button" class="last-say" id="last-say" hidden></button>
+    </article>
+
+    <article class="card fleet-card" id="fleet-card" data-pane="market" hidden>
+      <h2>Общий рынок: все боты в одном стакане</h2>
+      <div id="fleet-result"></div>
+    </article>
+
+    <article class="card result-card" id="result-card" data-pane="market" tabindex="-1">
+      <h2>Итог</h2>
+      <div id="result"></div>
+      <details class="how">
+        <summary>Как это считается</summary>
+        <p>Оба варианта оцениваются в один момент по одной цене: цене последней сделки. Без бота — это вся исходная позиция, с ботом — деньги на счёте и остаток бумаг.</p>
+        <p>Правило срабатывает по цене последней сделки, а продажа идёт по заявкам покупателей в стакане. Поэтому при скачке продажа проходит не по порогу, а по тем покупателям, что есть.</p>
+        <p>Рыночная оценка остатка не равна сумме, которую обязательно удастся получить: большая продажа сама двигает цену. Поэтому отдельно показано, что дал бы стакан прямо сейчас.</p>
+        <p>Разница может быть отрицательной. Это не гарантированная прибыль и не обещание сохранить деньги.</p>
+      </details>
+    </article>
+
+    <div class="side-row" data-pane="market">
+      <article class="card">
+        <h2>Мой портфель</h2>
+        <div class="big" id="pf-total">—</div>
+        <div class="chg" id="pf-chg"></div>
+        <dl class="rows" id="portfolio"></dl>
+      </article>
+      <article class="card">
+        <h2>Торговый бот</h2>
+        <div id="bot"></div>
+      </article>
+      <article class="card">
+        <h2>Подтверждённые правила</h2>
+        <div id="rules"></div>
+      </article>
+    </div>
+
+    <article class="card details-card" data-pane="log">
+      <div class="tabs" role="tablist" aria-label="Подробности">
+        <button type="button" role="tab" id="tab-book" aria-controls="panel-book" aria-selected="true">Стакан и заявки</button>
+        <button type="button" role="tab" id="tab-journal" aria-controls="panel-journal" aria-selected="false" tabindex="-1">Журнал решений</button>
+        <button type="button" role="tab" id="tab-knobs" aria-controls="panel-knobs" aria-selected="false" tabindex="-1">Ручки рынка</button>
+      </div>
+      <div class="tab-panel" role="tabpanel" id="panel-book" aria-labelledby="tab-book">
+        <div class="two">
+          <section><h3>Заявки покупателей</h3><div id="book"></div></section>
+          <section><h3>Мои заявки и сделки</h3><div id="orders"></div></section>
+        </div>
+      </div>
+      <div class="tab-panel" role="tabpanel" id="panel-journal" aria-labelledby="tab-journal" hidden>
+        <p class="hint">Что бот решил и почему — в порядке учебного времени, новые записи внизу.</p>
+        <div class="journal" id="journal" tabindex="0" aria-label="Журнал решений"></div>
+      </div>
+      <div class="tab-panel knobs" role="tabpanel" id="panel-knobs" aria-labelledby="tab-knobs" hidden>
+        <section>
+          <h3>Цена</h3>
+          <label class="field"><span>Цена, ₽</span><input id="price" type="number" min="1" step="1" value="880"></label>
+          <label class="field"><span>За сколько секунд</span><input id="gradual-sec" type="number" min="1" value="20"></label>
+          <div class="btns">
+            <button type="button" data-market="price">Установить сразу</button>
+            <button type="button" data-market="gradual">Снизить постепенно</button>
+          </div>
+        </section>
+        <section>
+          <h3>Покупатели</h3>
+          <label class="field col"><span>Объём покупателей <output id="demand-v">100%</output></span>
+            <input id="demand" type="range" min="0" max="2" step="0.1" value="1"></label>
+          <label class="field col"><span>Спред, ₽ <output id="spread-v">2</output> <small>разница между лучшим покупателем и продавцом</small></span>
+            <input id="spread" type="range" min="0" max="100" step="1" value="2"></label>
+          <div class="btns"><button type="button" id="halt-btn" data-market="halt">Остановить торги</button></div>
+        </section>
+        <section>
+          <h3>Участники и задержки</h3>
+          <label class="field"><span>Виртуальных ботов</span>
+            <select id="fleet"><option value="0">По сценарию</option><option value="1">1</option><option value="10">10</option><option value="100">100</option></select></label>
+          <label class="field"><span>Разброс задержки, мс</span><input id="jitter" type="number" min="0" step="50" value="0"></label>
+          <label class="field"><span>Seed очереди</span><input id="seed" type="number" value="42"></label>
+          <label class="field"><span>Задержка биржи, мс <small>учебного времени</small></span><input id="delay" type="number" min="0" step="50" value="300"></label>
+          <p class="hint">Ботов, разброс и seed применяет следующий запуск сценария.</p>
+        </section>
+      </div>
+    </article>
+    <footer data-pane="log">Учебный симулятор · искусственные данные. Не инвестиционная рекомендация, настоящие заявки не отправляются.</footer>
+  </div>
+
+  <aside class="chat-col" data-pane="chat" aria-label="Чат со Стражем">
+    <article class="card chat-card">
+      <div class="chat-head">
+        <h2>Чат со Стражем</h2>
+        <p class="hint" id="chat-note"></p>
+      </div>
+      <div class="chat" id="chat" aria-live="polite" aria-relevant="additions"></div>
+      <div class="quick" aria-label="Быстрые команды">
+        <button type="button" data-say="/status">Статус</button>
+        <button type="button" data-say="/portfolio">Портфель</button>
+        <button type="button" data-say="/rules">Правила</button>
+        <button type="button" data-say="/report">Отчёт</button>
+        <button type="button" data-say="/pause" title="Бот снимет свои заявки и перестанет торговать. Время не останавливается.">Остановить бота</button>
+        <button type="button" data-say="/resume">Возобновить бота</button>
+      </div>
+      <form id="chat-form">
+        <label class="vh" for="chat-input">Сообщение Стражу</label>
+        <textarea id="chat-input" rows="2" placeholder="Опишите правило своими словами…"></textarea>
+        <div class="chips" id="chips" aria-label="Примеры правил"></div>
+        <button class="primary wide" type="submit" id="chat-send">Отправить</button>
+      </form>
+    </article>
+  </aside>
+</main>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<dialog id="login-dlg" aria-labelledby="login-title">
+  <form id="login-form" method="dialog">
+    <h2 id="login-title">Вход владельца</h2>
+    <p class="hint">Владелец попадает в основную комнату с уведомлениями в Telegram. Посетителям вход не нужен.</p>
+    <label class="field col"><span>Пароль</span><input id="login-pass" type="password" autocomplete="current-password" required></label>
+    <p class="error" id="login-err" hidden></p>
+    <div class="btns end">
+      <button type="button" id="login-cancel">Отмена</button>
+      <button type="submit" class="primary" id="login-go">Войти</button>
+    </div>
+  </form>
+</dialog>
+<script src="/static/app.js"></script>
+</body>
+</html>

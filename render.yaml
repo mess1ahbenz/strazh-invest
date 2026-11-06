@@ -1,0 +1,29 @@
+# Render Blueprint: публичный сайт «Страж инвестиций». Секреты задаются в панели Render, в репозитории их нет.
+services:
+  - type: web
+    name: strazh-invest
+    runtime: docker
+    plan: free
+    region: frankfurt
+    healthCheckPath: /healthz
+    envVars:
+      - key: STRAZH_MODE
+        value: public
+      - key: STRAZH_HOST
+        value: 0.0.0.0
+      - key: STRAZH_SECRET_KEY
+        generateValue: true
+      - key: STRAZH_OWNER_PASSWORD
+        sync: false
+      - key: TELEGRAM_MODE
+        value: webhook
+      - key: TELEGRAM_WEBHOOK_SECRET
+        generateValue: true
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      - key: TELEGRAM_ALLOWED_USERS
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
