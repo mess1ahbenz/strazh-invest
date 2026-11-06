@@ -1,6 +1,7 @@
 """Настройки из окружения и `.env`. Секреты только здесь, в браузер и журнал они не попадают."""
 from __future__ import annotations
 
+import hashlib
 import os
 from dataclasses import dataclass
 from decimal import Decimal
@@ -81,6 +82,11 @@ class Settings:
     @property
     def base_url(self) -> str:
         return f"https://{self.public_host}" if self.public_host else ""
+
+    @property
+    def telegram_hook_token(self) -> str:
+        """Telegram принимает в secret_token только A-Z, a-z, 0-9, _ и -, а Render генерирует секрет с + / =."""
+        return hashlib.sha256(self.telegram_webhook_secret.encode()).hexdigest()
 
     @property
     def telegram_enabled(self) -> bool:
