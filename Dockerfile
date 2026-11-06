@@ -1,5 +1,5 @@
 FROM python:3.12-slim
-ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 STRAZH_DB=/data/strazh.db
 WORKDIR /srv
 COPY requirements.txt requirements-llm.txt ./
 RUN pip install --no-cache-dir -r requirements.txt -r requirements-llm.txt
